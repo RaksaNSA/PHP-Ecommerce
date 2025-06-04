@@ -9,11 +9,6 @@ $dbname = "php_ecommerce";
 $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
 
 try {
-    // create database if it does not exist
-    // Note: Connecting with $dbname in the DSN and then trying to create it can be redundant
-    // or lead to errors if $dbname doesn't exist yet and the user lacks permissions.
-    // It's often better to connect to mysql server (no dbname in DSN) to CREATE DATABASE.
-    // Then connect again with $dbname in DSN or use $pdo->exec("USE $dbname");
     $pdo->exec("CREATE DATABASE IF NOT EXISTS $dbname");
     $pdo->exec("USE $dbname"); // This ensures subsequent queries are on the correct DB.
 
@@ -33,14 +28,7 @@ try {
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
                 )";
-    $pdo->exec($sqlUser); // Changed to exec() which is more appropriate for DDL
-
-    // create order_product table
-    // NOTE: The definition for order_product references `order`(id) and product(id).
-    // You should create the `order` and `product` tables BEFORE this one.
-    // I will reorder them below for logical dependency.
-
-
+    $pdo->exec($sqlUser); 
     // create order_item table (actually 'order' table)
     $sqlOrderItem = "CREATE TABLE IF NOT EXISTS `order` (
                         id INTEGER AUTO_INCREMENT PRIMARY KEY,
@@ -54,24 +42,25 @@ try {
     $pdo->exec($sqlOrderItem); // Changed to exec()
 
     // create category table
-    $sqlCategory = "CREATE TABLE IF NOT EXISTS category (
+    $sqlCategory = "CREATE TABLE IF NOT EXISTS categories (
                         id INTEGER AUTO_INCREMENT PRIMARY KEY,
                         name VARCHAR(100),
                         active INTEGER DEFAULT 1
                     )";
     $pdo->exec($sqlCategory); // Changed to exec()
 
-    // create product table
-    $sqlProduct = "CREATE TABLE IF NOT EXISTS product (
+    // create products table
+    $sqlProduct = "CREATE TABLE IF NOT EXISTS products (
                         id INTEGER AUTO_INCREMENT PRIMARY KEY,
                         name VARCHAR(255),
                         description TEXT,
                         price DOUBLE,
                         stock INTEGER,
-                        image TEXT,
+                        image_url TEXT,
                         active INTEGER DEFAULT 1,
                         p_order INTEGER UNIQUE,
                         display INTEGER DEFAULT 1,
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                         category_id INTEGER,
                         FOREIGN KEY (category_id) REFERENCES category(id) ON DELETE CASCADE
                     )";
@@ -157,7 +146,17 @@ try {
                         FOREIGN KEY (product_id) REFERENCES product(id) ON DELETE CASCADE
                     )";
     $pdo->exec($sqlWishlist); // Changed to exec()
-
+    // create auth_tokens table
+    $sqlAuthTokens = "CREATE TABLE IF NOT EXISTS auth_tokens (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        user_id INT NOT NULL,
+                        selector VARCHAR(32) NOT NULL UNIQUE,  -- Reduced from 255 to 32
+                        hashed_token VARCHAR(64) NOT NULL, -- Reduced from 255 to 64 (for SHA256 hash)
+                        expires DATETIME NOT NULL,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+                    )";
+    $pdo->exec($sqlAuthTokens);
     echo "Tables created successfully";
 
 } catch (PDOException $e) {

@@ -1,6 +1,6 @@
 <?php
 session_start();
-
+include '../config/database.php'; // Ensure this file sets up $pdo and defines SITE_URL
 // Check if the user is logged in, if not then redirect to login page
 if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     header("Location: login.php");
@@ -8,9 +8,9 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
 }
 
 // If execution reaches here, user is logged in.
-echo "Welcome to your dashboard, " . htmlspecialchars($_SESSION['username']) . "!";
-// ... (rest of the dashboard content)
-echo '<br><a href="logout.php">Logout</a>';
+// echo "Welcome to your dashboard, " . htmlspecialchars($_SESSION['username']) . "!";
+// // ... (rest of the dashboard content)
+// echo '<br><a href="logout.php">Logout</a>';
 include_once '../config/config.php';
 
 ?>
