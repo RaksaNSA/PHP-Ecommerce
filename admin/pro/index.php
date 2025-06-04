@@ -182,9 +182,13 @@ try {
                                     <td class="px-0"><?php echo htmlspecialchars($product['id']); ?></td>
                                     <td class="px-0">
                                         <?php if (!empty($product['image_url'])): ?>
-                                            <img class="img-fluid" src="<?php echo htmlspecialchars($product['image_url']); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" width="50" height="50" style="object-fit: cover;">
+                                            <img class="img-fluid"
+                                                src="<?php echo SITE_URL . '/' . htmlspecialchars($product['image_url']); ?>"
+                                                alt="<?php echo htmlspecialchars($product['name']); ?>"
+                                                width="50" height="50" style="object-fit: cover;">
                                         <?php else: ?>
-                                            <img src="<?php echo SITE_URL; ?>/admin/assets/images/products/default-product.png" alt="Default" width="50">
+                                            <img src="<?php echo SITE_URL; ?>/admin/assets/images/products/default-product.png"
+                                                alt="Default" width="50">
                                         <?php endif; ?>
                                     </td>
                                     <td class="px-0"><?php echo htmlspecialchars($product['name']); ?></td>
