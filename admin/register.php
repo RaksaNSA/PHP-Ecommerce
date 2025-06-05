@@ -27,7 +27,7 @@
                 <form method="POST" action="register_process.php">
                   <div class="mb-3">
                     <label for="exampleInputtext1" class="form-label">Name</label>
-                    <input type="text" class="form-control" id="exampleInputtext1" name="name" aria-describedby="textHelp">
+                    <input type="text" class="form-control" id="exampleInputtext1" name="username" aria-describedby="textHelp">
                   </div>
                   <div class="mb-3">
                     <label for="exampleInputEmail1" class="form-label">Email Address</label>

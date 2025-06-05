@@ -5,12 +5,7 @@ ini_set('display_errors', 1);
 
 session_start();
 
-include '../config/database.php'; // This should define $pdo and SITE_URL
-// If SITE_URL is not in database.php, define it here or include the correct config file
-// Example: if (!defined('SITE_URL')) { define('SITE_URL', 'http://localhost/your_project_folder'); }
-
-
-// --- Helper Functions ---
+include '../config/database.php';
 function generate_token($length = 32) {
     return bin2hex(random_bytes($length));
 }
@@ -57,17 +52,15 @@ function clear_user_auth_tokens($pdo, $user_id) {
         $stmt = $pdo->prepare($sql);
         $stmt->execute([':user_id' => $user_id]);
     } catch (PDOException $e) {
-        // Log error: error_log("Error clearing auth tokens: " . $e->getMessage());
+
     }
 }
-// --- End Helper Functions ---
 
 
 $submitted_username = $_POST['username'] ?? '';
 $submitted_password = $_POST['password'] ?? '';
 $remember_me = isset($_POST['remember_me']) && $_POST['remember_me'] == '1';
 if (empty($submitted_username) || empty($submitted_password)) {
-    // Handle empty fields - maybe redirect back with an error message
     exit();
 }
 
@@ -77,18 +70,18 @@ $user_id_from_database = null;
 $username_from_database = null;
 
 try {
-    $sql = "SELECT id, name, password FROM user WHERE name = :name LIMIT 1";
+    $sql = "SELECT id, username, password FROM users WHERE username = :username LIMIT 1";
     $stmt = $pdo->prepare($sql);
-    $stmt->bindParam(':name', $submitted_username, PDO::PARAM_STR);
+    $stmt->bindParam(':username', $submitted_username, PDO::PARAM_STR);
     $stmt->execute();
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    $users = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($user) {
-        if (password_verify($submitted_password, $user['password'])) {
+    if ($users) {
+        if (password_verify($submitted_password, $users['password'])) {
             $password_is_correct = true;
             $username_is_valid = true;
-            $user_id_from_database = $user['id'];
-            $username_from_database = $user['name'];
+            $user_id_from_database = $users['id'];
+            $username_from_database = $users['username'];
         }
     }
 } catch (PDOException $e) {
@@ -104,39 +97,33 @@ if ($username_is_valid && $password_is_correct) {
     $_SESSION['logged_in'] = true;
 
     if ($remember_me) {
-        $selector = generate_token(16); // 32 chars
-        $validator = generate_token(32); // 64 chars
+        $selector = generate_token(16);
+        $validator = generate_token(32);
         $hashed_validator = hash('sha256', $validator);
-        $expires_timestamp = time() + (86400 * 30); // 30 days
+        $expires_timestamp = time() + (86400 * 30);
 
         if (store_auth_token($pdo, $user_id_from_database, $selector, $hashed_validator, $expires_timestamp)) {
             $cookie_options = [
                 'expires' => $expires_timestamp,
                 'path' => '/',
-                'domain' => '', // Or your specific domain
-                'secure' => isset($_SERVER['HTTPS']), // True if on HTTPS
+                'domain' => '',
+                'secure' => isset($_SERVER['HTTPS']),
                 'httponly' => true,
-                'samesite' => 'Lax' // Or 'Strict'
+                'samesite' => 'Lax'
             ];
             setcookie('remember_selector', $selector, $cookie_options);
             setcookie('remember_validator', $validator, $cookie_options); // Store the raw validator
         } else {
-            // Failed to store token in DB, don't set cookies or handle error
-            // Optionally, set a flash message for the user if critical
+           
         }
     } else {
-        // If "Remember Me" is not checked, clear any existing remember me cookies and DB tokens for this user
         clear_auth_cookies();
         clear_user_auth_tokens($pdo, $user_id_from_database);
     }
-
-    header("Location: dashboard.php"); // Or SITE_URL . "/admin/dashboard.php"
+    header("Location: dashboard.php");
     exit();
 } else {
     $_SESSION['login_error'] = "Invalid username or password.";
-    // Clear any potentially lingering "remember me" cookies if login fails with them present
-    // (though typically this isn't strictly necessary on login failure unless cookies were involved in the attempt)
-    // clear_auth_cookies();
     header("Location: login.php");
     exit();
 }

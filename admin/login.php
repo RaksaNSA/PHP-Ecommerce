@@ -5,6 +5,7 @@
         unset($_SESSION['login_error']); // Clear error after displaying
     }
 ?>
+<?php include_once '../config/config.php';?>
 <!doctype html>
 <html lang="en">
 
@@ -47,7 +48,7 @@
                         Remeber this Device
                       </label>
                     </div>
-                    <a class="text-primary fw-bold" href="./index.html">Forgot Password ?</a>
+                    <a class="text-primary fw-bold" href="./index.php">Forgot Password ?</a>
                   </div>
                   <button class="btn btn-primary w-100 py-8 fs-4 mb-4 rounded-2" type="submit">Sign In</button>
                   <script>
@@ -64,7 +65,7 @@
                   </script>
                   <div class="d-flex align-items-center justify-content-center">
                     <p class="fs-4 mb-0 fw-bold">New to MaterialM?</p>
-                    <a class="text-primary fw-bold ms-2" href="./authentication-register.html">Create an account</a>
+                    <a class="text-primary fw-bold ms-2" href="<?php echo SITE_URL?>/admin/register.php">Create an account</a>
                   </div>
                 </form>
               </div>

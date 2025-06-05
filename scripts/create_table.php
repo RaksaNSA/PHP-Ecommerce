@@ -16,9 +16,9 @@ try {
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     // create user table
-    $sqlUser = "CREATE TABLE IF NOT EXISTS user (
+    $sqlUser = "CREATE TABLE IF NOT EXISTS users (
                     id INTEGER AUTO_INCREMENT PRIMARY KEY,
-                    name VARCHAR(100),
+                    username VARCHAR(100),
                     email VARCHAR(100) UNIQUE,
                     password VARCHAR(255),
                     phone VARCHAR(20),
