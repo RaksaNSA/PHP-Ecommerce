@@ -96,6 +96,18 @@ include_once '../config/config.php';
             </li>
             <li class="sidebar-item">
               <a class="sidebar-link justify-content-between"  
+                href="<?php echo SITE_URL?>/admin/users" aria-expanded="false">
+                <div class="d-flex align-items-center gap-3">
+                  <span class="d-flex">
+                    <i class="ti ti-aperture"></i>
+                  </span>
+                  <span class="hide-menu">Users</span>
+                </div>
+                
+              </a>
+            </li>
+            <li class="sidebar-item">
+              <a class="sidebar-link justify-content-between"  
                 href="#" aria-expanded="false">
                 <div class="d-flex align-items-center gap-3">
                   <span class="d-flex">

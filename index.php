@@ -141,13 +141,15 @@ include_once __DIR__ . '/themes/header.php';
 			<?php foreach($products as $product): ?>
                 <div class="col-sm col-md-6 col-lg ftco-animate">
                     <div class="product">
-                        <a href="#" class="img-prod">
-                            <img class="img-fluid" src="images/<?php echo htmlspecialchars($product['image_url']); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>">
-                            <?php if (!empty($product['discount'])): ?>
-                                <span class="status"><?php echo htmlspecialchars($product['discount']); ?>%</span>
-                            <?php endif; ?>
-                            <div class="overlay"></div>
-                        </a>
+                        <?php if (!empty($product['image_url'])): ?>
+                                            <img class="img-fluid"
+                                                src="<?php echo SITE_URL . '/' . htmlspecialchars($product['image_url']); ?>"
+                                                alt="<?php echo htmlspecialchars($product['name']); ?>"
+                                                width="150" height="150" style="object-fit: cover;">
+                                        <?php else: ?>
+                                            <img src="<?php echo SITE_URL; ?>/admin/assets/images/products/default-product.png"
+                                                alt="Default" width="150">
+                                        <?php endif; ?>
                         <div class="text py-3 px-3">
                             <h3><a href="#"><?php echo htmlspecialchars($product['name']);?></a></h3>
                             <div class="d-flex">

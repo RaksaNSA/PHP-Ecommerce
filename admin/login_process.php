@@ -6,6 +6,7 @@ ini_set('display_errors', 1);
 session_start();
 
 include '../config/database.php';
+include '../config/config.php';
 function generate_token($length = 32) {
     return bin2hex(random_bytes($length));
 }
@@ -29,6 +30,30 @@ function store_auth_token($pdo, $user_id, $selector, $hashed_validator, $expires
         return true;
     } catch (PDOException $e) {
         // Log error: error_log("Error storing auth token: " . $e->getMessage());
+        return false;
+    }
+}
+
+// Validate the remember me authentication token
+function validate_auth_token($pdo, $selector, $validator) {
+    try {
+        $sql = "SELECT hashed_token, expires FROM auth_tokens WHERE selector = :selector LIMIT 1";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([':selector' => $selector]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($row) {
+            // Check if token is expired
+            if (strtotime($row['expires']) < time()) {
+                return false;
+            }
+            // Compare the hashed validator
+            if (hash_equals($row['hashed_token'], hash('sha256', $validator))) {
+                return true;
+            }
+        }
+        return false;
+    } catch (PDOException $e) {
+        // Log error: error_log("Error validating auth token: " . $e->getMessage());
         return false;
     }
 }

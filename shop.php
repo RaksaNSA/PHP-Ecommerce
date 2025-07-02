@@ -37,7 +37,7 @@ try {
           <?php foreach($products as $product): ?>
             <div class="col-sm-6 col-md-6 col-lg-4 ftco-animate">
               <div class="product">
-                <a href="#" class="img-prod">
+                <a href="<?php echo SITE_URL?>/product-single.php" class="img-prod">
                   <img class="img-fluid" src="<?php echo htmlspecialchars($product['image_url']); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>">
                   <div class="overlay"></div>
                 </a>
@@ -136,7 +136,7 @@ try {
   </div>
 </section>
 
-<?php include_once __DIR__ . '/../themes/footer.php'; ?>
+<?php include_once __DIR__ . '/themes/footer.php'; ?>
 
 <div id="ftco-loader" class="show fullscreen">
   <svg class="circular" width="48px" height="48px">

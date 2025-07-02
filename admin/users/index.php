@@ -1,19 +1,49 @@
 <?php
-include '../../config/database.php'; // Adjusted path to config file
+session_start();
+
+// Debug mode - set to false in production
+$debug_mode = true;
+
+if ($debug_mode) {
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+}
+
+// Check if config files exist
+if (!file_exists('../../config/database.php')) {
+    die('Database config file not found at: ' . realpath('../../config/database.php'));
+}
+if (!file_exists('../../config/config.php')) {
+    die('Config file not found at: ' . realpath('../../config/config.php'));
+}
+
+include '../../config/database.php';
 include_once '../../config/config.php';
+
+// Debug session info (remove in production)
+if ($debug_mode) {
+    echo "<!-- Debug Info: ";
+    echo "Session logged_in: " . (isset($_SESSION['logged_in']) ? $_SESSION['logged_in'] : 'NOT SET') . " | ";
+    echo "Session username: " . (isset($_SESSION['username']) ? $_SESSION['username'] : 'NOT SET') . " | ";
+    echo "SITE_URL: " . (defined('SITE_URL') ? SITE_URL : 'NOT DEFINED');
+    echo " -->";
+}
+
+// Check authentication
 if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
-    header("Location: " . SITE_URL . "/admin/login.php");
+    $redirect_url = (defined('SITE_URL') ? SITE_URL : '') . "/admin/login.php";
+    header("Location: " . $redirect_url);
     exit;
 }
 
-// Fetch products from the database
+// Fetch users from the database
 try {
-    $stmt = $pdo->query("SELECT p.*, c.name AS category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id ORDER BY p.created_at DESC");
-    $products = $stmt->fetchAll();
+    $stmt = $pdo->query("SELECT * FROM users ORDER BY created_at DESC");
+    $users = $stmt->fetchAll();
 } catch (PDOException $e) {
     // Handle error, e.g., display a message or log it
-    $products = []; // Set an empty array on error
-    $_SESSION['flash_message'] = "Error fetching products: " . $e->getMessage();
+    $users = []; // Set an empty array on error
+    $_SESSION['flash_message'] = "Error fetching users: " . $e->getMessage();
     $_SESSION['flash_message_type'] = "danger";
 }
 
@@ -24,7 +54,7 @@ try {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Product Management - Php Ecommerce</title>
+  <title>User Management - Php Ecommerce</title>
   <link rel="shortcut icon" type="image/png" href="<?php echo SITE_URL; ?>/admin/assets/images/logos/favicon.png" />
   <link rel="stylesheet" href="<?php echo SITE_URL; ?>/admin/assets/css/styles.min.css" />
 </head>
@@ -40,7 +70,7 @@ try {
         </a>
       </div>
       <div class="d-lg-flex align-items-center gap-2">
-        <h3 class="text-white mb-2 mb-lg-0 fs-5 text-center">Admin Dashboard - Products</h3>
+        <h3 class="text-white mb-2 mb-lg-0 fs-5 text-center">Admin Dashboard - Users</h3>
         <div class="d-flex align-items-center justify-content-center gap-2">
           <div class="dropdown d-flex">
             <a class="btn btn-primary d-flex align-items-center gap-1 " href="<?php echo SITE_URL?>" target="_blank" id="drop4">
@@ -74,7 +104,7 @@ try {
               </a>
             </li>
             <li class="sidebar-item">
-              <a class="sidebar-link justify-content-between active" href="<?php echo SITE_URL; ?>/admin/pro/" aria-expanded="false">
+              <a class="sidebar-link justify-content-between" href="<?php echo SITE_URL; ?>/admin/pro/" aria-expanded="false">
                 <div class="d-flex align-items-center gap-3">
                   <span class="d-flex">
                     <i class="ti ti-aperture"></i>
@@ -84,10 +114,10 @@ try {
               </a>
             </li>
             <li class="sidebar-item">
-              <a class="sidebar-link justify-content-between" href="<?php echo SITE_URL; ?>/admin/users/" aria-expanded="false">
+              <a class="sidebar-link justify-content-between active" href="<?php echo SITE_URL; ?>/admin/users/" aria-expanded="false">
                 <div class="d-flex align-items-center gap-3">
                   <span class="d-flex">
-                    <i class="ti ti-aperture"></i>
+                    <i class="ti ti-users"></i>
                   </span>
                   <span class="hide-menu">User</span>
                 </div>
@@ -141,11 +171,11 @@ try {
             <div class="card-body">
               <div class="d-md-flex align-items-center">
                   <div>
-                      <h4 class="card-title">Product List</h4>
-                      <p class="card-subtitle">Manage your products here.</p>
+                      <h4 class="card-title">User List</h4>
+                      <p class="card-subtitle">Manage your users here.</p>
                   </div>
                   <div class="ms-auto">
-                      <a href="<?php echo SITE_URL; ?>/admin/pro/add_product.php" class="btn btn-primary">Add New Product</a>
+                      <a href="<?php echo SITE_URL; ?>/admin/users/add_user.php" class="btn btn-primary">Add New User</a>
                   </div>
               </div>
               <div class="mt-3">
@@ -166,65 +196,49 @@ try {
                         <thead>
                             <tr>
                                 <th scope="col" class="px-0 text-muted">ID</th>
-                                <th scope="col" class="px-5 text-muted">Image</th>
-                                <th scope="col" class="px-0 text-muted">Name</th>
-                                <th scope="col" class="px-0 text-muted">Description</th>
-                                <th scope="col" class="px-0 text-muted">Price</th>
-                                <th scope="col" class="px-0 text-muted">Stock</th>
-                                <th scope="col" class="px-0 text-muted">Display</th>
-                                <th scope="col" class="px-0 text-muted">Category ID</th>
+                                <th scope="col" class="px-0 text-muted">Username</th>
+                                <th scope="col" class="px-0 text-muted">Email</th>
+                                <th scope="col" class="px-0 text-muted">Phone</th>
+                                <th scope="col" class="px-0 text-muted">Address</th>
+                                <th scope="col" class="px-0 text-muted">Role</th>
+                                <th scope="col" class="px-0 text-muted">Status</th>
                                 <th scope="col" class="px-0 text-muted">Created At</th>
                                 <th scope="col" class="px-0 text-muted">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php if (count($products) > 0): ?>
-                                <?php foreach ($products as $product): ?>
+                            <?php if (count($users) > 0): ?>
+                                <?php foreach ($users as $user): ?>
                                 <tr>
-                                    <td class="px-0"><?php echo htmlspecialchars($product['id']); ?></td>
-                                    <td class="px-5">
-                                        <?php if (!empty($product['image_url'])): ?>
-                                            <img class="img-fluid"
-                                                src="<?php echo SITE_URL . '/' . htmlspecialchars($product['image_url']); ?>"
-                                                alt="<?php echo htmlspecialchars($product['name']); ?>"
-                                                width="50" height="50" style="object-fit: cover;">
-                                        <?php else: ?>
-                                            <img src="<?php echo SITE_URL; ?>/admin/assets/images/products/default-product.png"
-                                                alt="Default" width="50">
-                                        <?php endif; ?>
-                                    </td>
-                                    <td class="px-0"><?php echo htmlspecialchars($product['name']); ?></td>
+                                    <td class="px-0"><?php echo htmlspecialchars($user['id']); ?></td>
+                                    <td class="px-0"><?php echo htmlspecialchars($user['username']); ?></td>
+                                    <td class="px-0"><?php echo htmlspecialchars($user['email']); ?></td>
+                                    <td class="px-0"><?php echo htmlspecialchars($user['phone'] ?? 'N/A'); ?></td>
                                     <td class="px-0">
                                         <?php
-                                        // Truncate description for display if it's too long
-                                        $description = htmlspecialchars($product['description'] ?? ''); // Handle null description
-                                        if (strlen($description) > 50) {
-                                            echo substr($description, 0, 50) . "...";
+                                        // Truncate address for display if it's too long
+                                        $address = htmlspecialchars($user['address'] ?? '');
+                                        if (strlen($address) > 30) {
+                                            echo substr($address, 0, 30) . "...";
                                         } else {
-                                            echo $description;
+                                            echo $address ?: 'N/A';
                                         }
                                         ?>
                                     </td>
-                                    <td class="px-0">$<?php echo htmlspecialchars(number_format($product['price'], 2)); ?></td>
-                                    <td class="px-0"><?php echo htmlspecialchars($product['stock'] ?? 'N/A'); // Assuming 'stock' column ?></td>
                                     <td class="px-0">
-                                        <?php
-                                        // Assuming 'display_status' column (e.g., 1 for display, 0 for hidden)
-                                        if (isset($product['display_status'])) {
-                                            echo $product['display_status'] ? 'Yes' : 'No';
-                                        } else {
-                                            echo 'N/A';
-                                        }
-                                        ?>
+                                        <span class="badge bg-<?php echo ($user['role'] === 'admin') ? 'danger' : 'primary'; ?>">
+                                            <?php echo htmlspecialchars(ucfirst($user['role'] ?? 'user')); ?>
+                                        </span>
                                     </td>
-                                   <!-- check if category_id = 1 it shows Men and category_id = 0 it shows Women -->
                                     <td class="px-0">
-                                        <?php echo htmlspecialchars($product['category_name'] ?? 'N/A'); ?>
+                                        <span class="badge bg-<?php echo $user['active'] ? 'success' : 'secondary'; ?>">
+                                            <?php echo $user['active'] ? 'Active' : 'Inactive'; ?>
+                                        </span>
+                                    </td>
                                     <td class="px-0">
                                         <?php
-                                        if (!empty($product['created_at'])) {
-                                            // Format the date for better readability
-                                            $date = new DateTime($product['created_at']);
+                                        if (!empty($user['created_at'])) {
+                                            $date = new DateTime($user['created_at']);
                                             echo htmlspecialchars($date->format('Y-m-d H:i'));
                                         } else {
                                             echo 'N/A';
@@ -232,14 +246,18 @@ try {
                                         ?>
                                     </td>
                                     <td class="px-0">
-                                        <a href="<?php echo SITE_URL; ?>/admin/pro/edit_product.php?id=<?php echo $product['id']; ?>" class="btn btn-sm btn-info">Edit</a>
-                                        <a href="<?php echo SITE_URL; ?>/admin/pro/process_product.php?action=delete&id=<?php echo $product['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this product?');">Delete</a>
+                                        <a href="<?php echo SITE_URL; ?>/admin/users/edit_user.php?id=<?php echo $user['id']; ?>" class="btn btn-sm btn-info">Edit</a>
+                                        <?php if ($user['id'] != $_SESSION['user_id']): // Don't allow deleting current user ?>
+                                        <a href="<?php echo SITE_URL; ?>/admin/users/process_user.php?action=delete&id=<?php echo $user['id']; ?>" 
+                                           class="btn btn-sm btn-danger" 
+                                           onclick="return confirm('Are you sure you want to delete this user?');">Delete</a>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="10" class="text-center">No products found.</td>
+                                    <td colspan="9" class="text-center">No users found.</td>
                                 </tr>
                             <?php endif; ?>
                         </tbody>

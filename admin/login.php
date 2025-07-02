@@ -45,7 +45,7 @@
                     <div class="form-check">
                       <input class="form-check-input primary" type="checkbox" value="1" id="flexCheckChecked" name="remember_me" checked>
                       <label class="form-check-label text-dark" for="flexCheckChecked">
-                        Remeber this Device
+                        Remember this Device
                       </label>
                     </div>
                     <a class="text-primary fw-bold" href="./index.php">Forgot Password ?</a>
